@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Recap Pipeline | Production Studio</title>
+  <meta name="description" content="ระบบผลิตคลิปสรุป/สปอยล์อนิเมะอัตโนมัติด้วย AI และภาพนิ่งเคลื่อนไหว เลี่ยงลิขสิทธิ์ 100% พร้อมระบบถอดเสียงและเขียนบท">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation Header -->
+  <header class="app-header" id="appHeader">
+    <div class="header-brand">
+      <div class="brand-logo">
+        <span class="logo-icon">⚡</span>
+        <div class="brand-text">
+          <h1>ANIME RECAP PIPELINE</h1>
+          <span class="brand-badge">PRODUCTION READY</span>
+        </div>
+      </div>
+      <div class="shield-status-pill" id="rightsStatusPill" style="cursor: pointer;" title="คลิกเพื่อเปิดหน้าต่างตรวจสอบสิทธิ์และ Asset Provenance">
+        <span class="pulse-dot" id="rightsStatusDot"></span>
+        <span class="shield-label">Rights Review:</span>
+        <span class="shield-val" id="rightsStatusValue">Review Required</span>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="project-selector-wrapper">
+        <label for="projectSelect">โปรเจกต์:</label>
+        <select id="projectSelect" class="styled-select"></select>
+      </div>
+      <button class="btn btn-primary" id="btnNewProject">+ สร้างโปรเจกต์</button>
+      <button class="btn btn-danger" id="btnDeleteProject" title="ลบโปรเจกต์ปัจจุบันและไฟล์ทั้งหมด">🗑️ ลบโปรเจกต์</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container" id="mainContainer">
+    <!-- Status & Metrics Banner -->
+    <section class="metrics-banner" aria-label="Project Status">
+      <div class="metric-card">
+        <div class="metric-icon">🖼️</div>
+        <div class="metric-content">
+          <span class="metric-label">จำนวนคัทภาพนิ่ง</span>
+          <span class="metric-value" id="statFramesCount">0 ภาพ</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🎙️</div>
+        <div class="metric-content">
+          <span class="metric-label">บทบรรยาย AI</span>
+          <span class="metric-value" id="statLinesCount">0 ประโยค</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">📝</div>
+        <div class="metric-content">
+          <span class="metric-label">การถอดเสียง/ซับ</span>
+          <span class="metric-value" id="statTranscriptStatus">ไม่มีข้อมูล</span>
+        </div>
+      </div>
+      <div class="metric-card highlight-card">
+        <div class="metric-icon">⏱️</div>
+        <div class="metric-content">
+          <span class="metric-label">ความยาวคลิปประมาณ</span>
+          <span class="metric-value" id="statDuration">0.0 วินาที</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🛡️</div>
+        <div class="metric-content">
+          <span class="metric-label">ระบบตัด OP/ED</span>
+          <span class="metric-value" id="statOpEdStatus" style="font-size: 0.85rem; color: #00ff88;">ตรวจจับอัตโนมัติ ✅</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="pipeline-tabs" aria-label="Pipeline Workflow Tabs">
+      <button class="tab-btn active" data-tab="tab-storyboard" id="tabBtnStoryboard">
+        <span class="tab-step">1</span>
+        <span class="tab-text">Storyboard & ภาพนิ่ง</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-script" id="tabBtnScript">
+        <span class="tab-step">2</span>
+        <span class="tab-text">เขียนบท AI & เสียงพากย์</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-render" id="tabBtnRender">
+        <span class="tab-step">3</span>
+        <span class="tab-text">ตัดต่อ & เรนเดอร์วิดีโอ</span>
+      </button>
+    </nav>
+
+    <!-- Tab 1: Storyboard & Frames -->
+    <section class="tab-content active" id="tab-storyboard">
+      <div class="tab-header-actions">
+        <div class="section-title-group">
+          <h2>คลังภาพนิ่งที่สกัดจากอนิเมะ (Keyframe Storyboard)</h2>
+          <p>ภาพสำคัญที่ดึงจาก Scene Cut พร้อมตัดตอน OP/ED ออกแล้ว เพื่อนำมาสร้าง Dynamic Ken Burns Motion</p>
+        </div>
+        <div class="actions-group">
+          <button class="btn btn-secondary" id="btnExtractModal">⚡ สกัดภาพ & ถอดเสียงจากวิดีโอ</button>
+        </div>
+      </div>
+
+      <div class="storyboard-toolbar">
+        <div class="storyboard-status">
+          <span>คลังภาพทั้งหมด: <strong id="lblTotalFrames">0</strong> ภาพ</span>
+          <span class="divider">|</span>
+          <span>Storyboard ที่เลือก: <strong id="lblSelectedStoryboard" style="color: #ffd700;">0</strong> ฉาก</span>
+        </div>
+        <div class="storyboard-actions">
+          <span style="font-size: 0.8rem; color: #8b9bb4;">คัดเลือกอัตโนมัติ:</span>
+          <button class="btn btn-sm btn-outline" id="btnAutoPick15">🎯 15 ฉาก</button>
+          <button class="btn btn-sm btn-outline" id="btnAutoPick30">🔥 30 ฉาก</button>
+          <button class="btn btn-sm btn-outline" id="btnAutoPick45">🌟 45 ฉาก</button>
+          <button class="btn btn-sm btn-outline" id="btnSelectAllFrames">✅ ทั้งหมด</button>
+          <button class="btn btn-sm btn-outline danger" id="btnClearStoryboard">🗑️ ล้าง</button>
+          <button class="btn btn-sm btn-accent" id="btnTrimOpEd" title="ตัดภาพเพลงเปิด (OP) และเพลงปิด (ED) ออกจากคลัง">✂️ ตัด OP/ED</button>
+          <button class="btn btn-sm btn-primary" id="btnGoToScriptWithStoryboard">➡️ ไปแต่งบทตาม Storyboard</button>
+        </div>
+      </div>
+
+      <div class="frames-grid" id="framesGrid">
+        <!-- Frames will be injected here dynamically -->
+      </div>
+    </section>
+
+    <!-- Tab 2: Script & AI Voice Studio -->
+    <section class="tab-content" id="tab-script">
+      <div class="tab-header-actions">
+        <div class="section-title-group">
+          <h2>สตูดิโอเขียนบทและเสียงพากย์ภาษาไทย</h2>
+          <p>ตรวจแก้ เพิ่ม/ลบ ท่อนบทพูดภาษาไทยอิสระ เลือกลิงก์กับรูปภาพ และกดฟังเสียงพากย์ Real-time</p>
+        </div>
+        <div class="actions-group">
+          <button class="btn btn-outline" id="btnRecalculateTimeline" title="คำนวณและซิงก์ความยาวฉากกับเวลาพูดใหม่ทันที">⏱️ ซิงก์ไทม์ไลน์ (Sync Timing)</button>
+          <button class="btn btn-outline" id="btnOpenTranscriptModal">📜 ดู/แก้ไข สคริปต์ถอดเสียง</button>
+          <button class="btn btn-secondary" id="btnAiScriptModal">✨ ให้ AI ช่วยเขียนบท (จากเสียงถอดเทป)</button>
+          <button class="btn btn-accent" id="btnGenerateTTS">🎙️ สร้างเสียงพากย์ & ซับไตเติล</button>
+        </div>
+      </div>
+
+      <div class="script-settings-bar">
+        <div class="setting-item">
+          <label for="voiceSelect">เลือกผู้พากย์:</label>
+          <select id="voiceSelect" class="styled-select">
+            <option value="th-TH-NiwatNeural">นิวัติ (ชาย - เสียงเล่าเรื่องตื่นเต้น/สปอยล์)</option>
+            <option value="th-TH-PremwadeeNeural">เปรมวดี (หญิง - เสียงชัดเจน/จริงจัง)</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label for="rateSelect">ความเร็วการพูด:</label>
+          <select id="rateSelect" class="styled-select">
+            <option value="+0%">ปกติ (+0%)</option>
+            <option value="+5%" selected>เร่งสปีดเล็กน้อย (+5% แนะนำ)</option>
+            <option value="+10%">เร็วแนวสปอยล์มันส์ (+10%)</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>เสียงพากย์ Master:</label>
+          <span id="audioMasterStatusBadge" class="badge badge-warning">ยังไม่ได้สร้าง</span>
+        </div>
+        <div class="setting-item">
+          <label>สถานะไทม์ไลน์:</label>
+          <span id="timelineStatusBadge" class="badge badge-success">⏱️ Frame-Aligned 100%</span>
+        </div>
+      </div>
+
+      <div class="script-editor-container" id="scriptEditorContainer">
+        <!-- Script lines will be populated here -->
+      </div>
+
+      <div class="editor-bottom-bar">
+        <button class="btn btn-outline" id="btnAddScriptLine">+ เพิ่มท่อนบทพูดต่อท้าย</button>
+        <button class="btn btn-primary" id="btnSaveScript">💾 บันทึกบทบรรยายทั้งหมด</button>
+      </div>
+    </section>
+
+    <!-- Tab 3: Render & Preview Studio -->
+    <section class="tab-content" id="tab-render">
+      <div class="render-workspace-layout">
+        <!-- Left: Render Settings -->
+        <div class="render-settings-panel">
+          <h3>การตั้งค่าการเรนเดอร์ (Render Options)</h3>
+          
+          <div class="setting-box">
+            <label class="setting-title">สัดส่วนวิดีโอ (Aspect Ratio):</label>
+            <div class="radio-options">
+              <label class="radio-card">
+                <input type="radio" name="aspectRatio" value="16:9" checked>
+                <div class="card-content">
+                  <span class="card-icon">📺</span>
+                  <span class="card-text">16:9 แนวนอน</span>
+                  <span class="card-sub">YouTube Long-Form</span>
+                </div>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="aspectRatio" value="9:16">
+                <div class="card-content">
+                  <span class="card-icon">📱</span>
+                  <span class="card-text">9:16 แนวตั้ง</span>
+                  <span class="card-sub">Facebook Reels / Shorts</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-box">
+            <label class="setting-title" for="bgmSelect">เพลงประกอบ (Royalty-Free BGM):</label>
+            <select id="bgmSelect" class="styled-select full-width">
+              <option value="epic_anime.mp3">Epic Anime Ambient (อารมณ์ยิ่งใหญ่)</option>
+              <option value="suspense_theme.mp3">Suspense Theme (ลึกลับ ระทึกขวัญ)</option>
+              <option value="none">ไม่ใส่เพลงประกอบ</option>
+            </select>
+          </div>
+
+          <div class="setting-box">
+            <label class="setting-title">ระดับเสียง BGM & Audio Ducking:</label>
+            <div class="slider-row">
+              <input type="range" id="bgmVolume" min="0.05" max="0.35" step="0.05" value="0.15" class="styled-slider">
+              <span id="bgmVolumeLabel">15% (หรี่ลงเมื่อมีเสียงพากย์)</span>
+            </div>
+          </div>
+
+          <div class="setting-box">
+            <label class="checkbox-container">
+              <input type="checkbox" id="checkBurnSubtitles" checked>
+              <span class="checkmark"></span>
+              <span class="checkbox-label">ฝังซับไตเติลภาษาไทยลงในภาพ (Burn-in ASS/SRT)</span>
+            </label>
+            <label class="checkbox-container">
+              <input type="checkbox" id="checkKenBurns" checked disabled>
+              <span class="checkmark"></span>
+              <span class="checkbox-label">Dynamic Ken Burns Motion (Zoom, Pan, Tilt)</span>
+            </label>
+            <label class="checkbox-container">
+              <input type="checkbox" id="checkAntiCopyright" checked disabled>
+              <span class="checkmark"></span>
+              <span class="checkbox-label">Cinematic Film Grain & Color Grading</span>
+            </label>
+          </div>
+
+          <div class="render-action-area">
+            <button class="btn btn-action-large" id="btnStartRender">
+              <span class="btn-icon">🚀</span>
+              <span class="btn-text">เริ่มเรนเดอร์วิดีโอ (Render Video)</span>
+            </button>
+            <div class="render-progress-box" id="renderProgressBox" style="display: none;">
+              <div class="spinner"></div>
+              <span id="renderProgressText">กำลังประมวลผลวิดีโอ กรุณารอสักครู่...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Video Player & Output -->
+        <div class="render-preview-panel">
+          <h3>พรีวิวผลงานวิดีโอ (Video Preview)</h3>
+          <div class="player-wrapper" id="playerWrapper">
+            <video id="videoPreviewPlayer" controls poster="">
+              <source src="" type="video/mp4">
+              บราวเซอร์ของคุณไม่รองรับการเล่นวิดีโอ HTML5
+            </video>
+          </div>
+          <div class="export-download-bar" id="exportDownloadBar">
+            <a href="#" download class="btn btn-primary" id="btnDownload169" style="display: none;">
+              ⬇️ ดาวน์โหลด 16:9 (YouTube)
+            </a>
+            <a href="#" download class="btn btn-secondary" id="btnDownload916" style="display: none;">
+              ⬇️ ดาวน์โหลด 9:16 (Reels/Shorts)
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Create New Project -->
+  <div class="modal-backdrop" id="modalNewProject" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>สร้างโปรเจกต์ใหม่</h3>
+        <button class="btn-close" id="btnCloseNewProjectModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="inputProjectId">รหัสโปรเจกต์ (ID ภาษาอังกฤษ/ตัวเลข):</label>
+          <input type="text" id="inputProjectId" class="styled-input full-width" placeholder="e.g. solo_leveling_ep01">
+        </div>
+        <div class="form-group">
+          <label for="inputProjectTitle">ชื่อเรื่องอนิเมะ:</label>
+          <input type="text" id="inputProjectTitle" class="styled-input full-width" placeholder="e.g. สปอยล์ Solo Leveling ตอนที่ 1">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnCancelNewProject">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnSubmitNewProject">สร้างโปรเจกต์</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Extract Frames & Transcribe Audio -->
+  <div class="modal-backdrop" id="modalExtract" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>สกัดภาพนิ่ง & ถอดเสียงจากวิดีโออนิเมะ</h3>
+        <button class="btn-close" id="btnCloseExtractModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>วิธีที่ 1: เลือกไฟล์วิดีโอจากเครื่องคอมพิวเตอร์ของคุณ:</label>
+          <input type="file" id="inputVideoFile" accept="video/mp4,video/mkv,video/webm,video/*" class="styled-input full-width">
+          <small class="helper-text">เลือกไฟล์ .mp4, .mkv, .webm เพื่ออัปโหลดเข้าสู่ระบบ</small>
+        </div>
+        <div style="text-align: center; margin: 0.5rem 0; color: var(--text-dim); font-size: 0.8rem;">— หรือ —</div>
+        <div class="form-group">
+          <label for="inputVideoPath">วิธีที่ 2: วางที่อยู่ไฟล์บนเครื่อง (Full Path):</label>
+          <input type="text" id="inputVideoPath" class="styled-input full-width" placeholder="e.g. C:\Users\User\Videos\anime_ep1.mp4">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 1rem 0;">
+
+        <!-- Transcription Option -->
+        <div class="form-group">
+          <label class="checkbox-container" style="color: var(--text-main); font-weight: 500;">
+            <input type="checkbox" id="checkDoTranscribe" checked>
+            <span class="checkmark"></span>
+            <span class="checkbox-label">🎙️ ถอดข้อความเสียงจากคลิป / ดึงซับไตเติล (Audio Transcription & Subtitles)</span>
+          </label>
+          <small class="helper-text">ระบบจะดึงซับไตเติลในไฟล์ก่อน ถ้าไม่มีจะสกัดเสียงเพื่อใช้ AI ถอดความนำไปแต่งบทพูด</small>
+        </div>
+
+        <div class="form-group" id="groupExtractApiKey">
+          <label for="inputExtractApiKey">Google Gemini API Key (สำหรับถอดเสียงพูด):</label>
+          <input type="password" id="inputExtractApiKey" class="styled-input full-width" placeholder="AIzaSy... (เว้นว่างได้ถ้ามีซับในไฟล์)">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="inputThreshold">ความไวของ Scene Cut:</label>
+            <input type="number" id="inputThreshold" class="styled-input full-width" value="0.28" step="0.02" min="0.1" max="0.6">
+          </div>
+          <div class="form-group half">
+            <label for="inputMaxFrames">จำนวนภาพสูงสุด:</label>
+            <input type="number" id="inputMaxFrames" class="styled-input full-width" value="250" step="50" min="20" max="800">
+          </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 1rem 0;">
+
+        <!-- OP/ED Shield Auto-Detection Card -->
+        <div style="background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="checkbox-container" style="font-weight: 600; color: #00f0ff; margin-bottom: 0;">
+              <input type="checkbox" id="checkAutoDetectOpEd" checked>
+              <span class="checkmark"></span>
+              <span class="checkbox-label" style="font-size: 0.95rem;">⚡ ตรวจจับและตัด OP/ED ในคลิปอัตโนมัติ (Auto-Detect)</span>
+            </label>
+            <span class="badge badge-success">แนะนำ (Auto 100%)</span>
+          </div>
+          <p style="font-size: 0.8rem; color: #8b9bb4; margin: 0 0 8px 24px; line-height: 1.4;">
+            ระบบจะวิเคราะห์คลื่นเสียง (Silence & Transition) และ Chapter ในคลิป เพื่อหาตำแหน่งเพลงเปิด (OP ~1:30 นาที) และเพลงปิด (ED) ให้อัตโนมัติ
+          </p>
+
+          <div id="manualOpEdWrapper" style="display: none; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px; margin-top: 8px;">
+            <div style="font-size: 0.78rem; color: #ffaa00; margin-bottom: 8px;">⚙️ กำหนดเวลาตัดเอง (Manual Override):</div>
+            <div class="form-row">
+              <div class="form-group half">
+                <label class="checkbox-container" style="margin-bottom: 6px;">
+                  <input type="checkbox" id="checkSkipIntro" checked>
+                  <span class="checkmark"></span>
+                  <span class="checkbox-label">ตัด OP เพลงเปิด</span>
+                </label>
+                <input type="text" id="inputIntroSec" class="styled-input full-width" placeholder="วินาที เช่น 90" value="90">
+                <input type="text" id="inputIntroRange" class="styled-input full-width" placeholder="ช่วงเวลา เช่น 00:05-01:35" style="margin-top: 4px;">
+              </div>
+              <div class="form-group half">
+                <label class="checkbox-container" style="margin-bottom: 6px;">
+                  <input type="checkbox" id="checkSkipOutro" checked>
+                  <span class="checkmark"></span>
+                  <span class="checkbox-label">ตัด ED เพลงปิด</span>
+                </label>
+                <input type="text" id="inputOutroSec" class="styled-input full-width" placeholder="วินาที เช่น 90" value="90">
+                <input type="text" id="inputOutroRange" class="styled-input full-width" placeholder="ช่วงเวลา เช่น 10:30-11:56" style="margin-top: 4px;">
+              </div>
+            </div>
+          </div>
+          <button type="button" id="btnToggleManualOpEd" style="background: none; border: none; color: #8b9bb4; font-size: 0.76rem; cursor: pointer; text-decoration: underline; padding: 0 0 0 24px;">
+            ⚙️ ปรับแต่งช่วงเวลาตัดเอง (Manual Settings)
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnCancelExtract">ยกเลิก</button>
+        <button class="btn btn-accent" id="btnSubmitExtract">เริ่มสกัดภาพ & ประมวลผล</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: AI Script Generator -->
+  <div class="modal-backdrop" id="modalAiScript" style="display: none;">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3>✨ ให้ AI ช่วยเขียนบทสปอยล์ (คัดภาพทั่วทั้งเรื่อง & พากย์ตรงฉาก)</h3>
+        <button class="btn-close" id="btnCloseAiScriptModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="inputGeminiKey">Google Gemini API Key (เว้นว่างไว้เพื่อใช้ระบบแต่งเรื่องอัตโนมัติตามภาพฟรี):</label>
+          <input type="password" id="inputGeminiKey" class="styled-input full-width" placeholder="AIzaSy...">
+          <small class="helper-text">💡 หากใส่ API Key ระบบจะส่งภาพจริง 30 รูปให้ Gemini Multimodal Vision วิเคราะห์และพากย์ตรงภาพ 100%</small>
+        </div>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label for="inputSynopsis">บทสนทนาที่ถอดได้จากคลิป / เรื่องย่อ:</label>
+            <span id="badgeTranscriptFound" class="badge badge-success" style="display: none;">พบข้อความถอดเสียง</span>
+          </div>
+          <!-- Retry Transcription Section (shown when error detected) -->
+          <div id="retryTranscriptionSection" style="display: none; background: rgba(255, 152, 0, 0.08); border: 1px solid rgba(255, 152, 0, 0.25); border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="font-size: 1.2rem;">⚠️</span>
+              <span id="retryErrorMessage" style="color: #ff9800; font-size: 0.85rem; flex: 1;">การถอดเสียงไม่สำเร็จ (เซิร์ฟเวอร์โหลดสูง)</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: end;">
+              <div style="flex: 1;">
+                <label style="font-size: 0.75rem; color: #8b9bb4; margin-bottom: 2px;">Gemini API Key (สำหรับ Retry):</label>
+                <input type="password" id="inputRetryApiKey" class="styled-input full-width" placeholder="AIzaSy..." style="font-size: 0.85rem; padding: 6px 10px;">
+              </div>
+              <button class="btn btn-accent" id="btnRetryTranscribe" style="white-space: nowrap; padding: 6px 14px; font-size: 0.85rem;">
+                🔄 ลองถอดเสียงใหม่
+              </button>
+            </div>
+            <div id="retryStatusMessage" style="font-size: 0.78rem; color: #8b9bb4; margin-top: 6px; display: none;"></div>
+          </div>
+          <textarea id="inputSynopsis" class="styled-textarea full-width" rows="5" placeholder="ระบบจะดึงบทสนทนาที่ถอดได้มาใส่ให้อัตโนมัติ หรือคุณสามารถวางเรื่องย่อเองได้ที่นี่..."></textarea>
+        </div>
+
+        <div class="form-group" style="background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label for="inputAiCount" style="margin-bottom: 0; font-weight: 600;">จำนวนภาพและท่อนบทพูด (Target Scenes):</label>
+            <div style="display: flex; gap: 4px;">
+              <button type="button" class="btn btn-sm btn-outline btn-preset-count" data-count="15">15 ฉาก</button>
+              <button type="button" class="btn btn-sm btn-outline btn-preset-count" data-count="30">30 ฉาก</button>
+              <button type="button" class="btn btn-sm btn-outline btn-preset-count" data-count="45">45 ฉาก</button>
+            </div>
+          </div>
+          <input type="number" id="inputAiCount" class="styled-input full-width" value="30" min="5" max="150">
+          <div id="aiScriptSamplingInfo" style="margin-top: 8px; font-size: 0.82rem; color: #00ff88; line-height: 1.4;">
+            🎯 กำลังคำนวณการกระจายภาพ...
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnCancelAiScript">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnSubmitAiScript">🚀 สร้างสคริปต์ & ซิงก์ภาพทันที</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal: View & Edit Full Transcript -->
+  <div class="modal-backdrop" id="modalTranscript" style="display: none;">
+    <div class="modal-card" style="max-width: 780px; width: 95vw;">
+      <div class="modal-header">
+        <h3>📜 ตรวจสอบและแก้ไขสคริปต์ถอดเสียง (Full Transcript)</h3>
+        <button class="btn-close" id="btnCloseTranscriptModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <small class="helper-text" style="margin-bottom: 0;">💡 สคริปต์ถอดเสียงนี้จะถูกนำไปใช้วิเคราะห์และเขียนบทสรุปแบบเต็มเรื่อง ไม่ตัดทอน</small>
+          <span id="lblTranscriptCharCount" style="font-size: 0.75rem; color: #00ff88; font-weight: bold;">0 ตัวอักษร</span>
+        </div>
+        <textarea id="textareaFullTranscript" class="styled-textarea full-width" rows="15" style="font-family: monospace; font-size: 0.85rem; line-height: 1.5;" placeholder="วางสคริปต์ถอดความ, ซับไตเติล หรือเนื้อเรื่องย่อที่นี่..."></textarea>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button class="btn btn-outline" id="btnCancelTranscript">ปิด</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" id="btnSaveTranscript">💾 บันทึกสคริปต์ถอดเสียง</button>
+          <button class="btn btn-secondary" id="btnProceedToAiScript">✨ ไปสร้างบท AI ทันที</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Visual Frame Picker -->
+  <div class="modal-backdrop" id="modalFramePicker" style="display: none;">
+    <div class="modal-card" style="max-width: 920px; width: 95vw;">
+      <div class="modal-header">
+        <h3>🖼️ เลือกภาพนิ่งสำหรับท่อนนี้ (Visual Frame Picker)</h3>
+        <button class="btn-close" id="btnCloseFramePickerModal">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
+        <p style="color: #8b9bb4; font-size: 0.85rem; margin-bottom: 12px;">คลิกที่รูปภาพที่ต้องการเพื่อจับคู่กับท่อนบทพากย์นี้ทันที</p>
+        <div class="picker-frames-grid" id="pickerFramesGrid"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnCancelFramePicker">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Trim OP/ED from Storyboard -->
+  <div class="modal-backdrop" id="modalTrimOpEd" style="display: none;">
+    <div class="modal-card" style="max-width: 620px; width: 95vw;">
+      <div class="modal-header">
+        <h3>✂️ ตัดเพลงเปิด/ปิด (OP/ED) ออกจาก Storyboard</h3>
+        <button class="btn-close" id="btnCloseTrimOpEd">&times;</button>
+      </div>
+        <!-- Quick Auto-Detect Action Bar -->
+        <div style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 0.88rem; color: #00f0ff;">⚡ ตรวจจับ OP/ED จากคลิปอัตโนมัติ (Multi-Stage AI)</div>
+            <div style="font-size: 0.76rem; color: #8b9bb4;" id="trimDetectStatusLbl">สแกนหาตำแหน่งช่วงเพลง OP และ ED จากไฟล์วิดีโอโดยตรง (Scene+Audio+Visual Analysis)</div>
+          </div>
+          <button type="button" class="btn btn-sm btn-primary" id="btnAutoScanVideoOpEd" style="white-space: nowrap;">
+            🔍 สแกนตรวจจับทันที
+          </button>
+        </div>
+
+        <!-- Detection Confidence Dashboard (hidden until scan is done) -->
+        <div id="trimDetectionDashboard" style="display: none; margin-bottom: 16px;">
+          <!-- OP Confidence Card -->
+          <div id="trimOpConfCard" style="background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 600; font-size: 0.85rem; color: #00f0ff;">🎵 OP Detection</span>
+              <span id="trimOpConfBadge" style="font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;"></span>
+            </div>
+            <div style="display: flex; gap: 6px; font-size: 0.72rem; color: #8b9bb4;" id="trimOpSignals"></div>
+          </div>
+          <!-- ED Confidence Card -->
+          <div id="trimEdConfCard" style="background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-weight: 600; font-size: 0.85rem; color: #a855f7;">🎶 ED Detection</span>
+              <span id="trimEdConfBadge" style="font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;"></span>
+            </div>
+            <div style="display: flex; gap: 6px; font-size: 0.72rem; color: #8b9bb4;" id="trimEdSignals"></div>
+          </div>
+          <!-- Post-Credit Protection Card -->
+          <div id="trimPostCreditCard" style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.15); border-radius: 8px; padding: 10px 14px; display: none;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.1rem;">🛡️</span>
+              <div>
+                <div style="font-weight: 600; font-size: 0.85rem; color: #00ff88;">พบ Post-Credit Scene (ฉากหลังเครดิต)</div>
+                <div style="font-size: 0.76rem; color: #8b9bb4;" id="trimPostCreditInfo">ระบบจะเก็บฉากนี้ไว้ ไม่ตัดออก</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="trim-opped-grid">
+          <!-- OP Section -->
+          <div class="trim-section">
+            <div class="trim-section-header op-header">
+              <span>🎵 เพลงเปิด (Opening / OP)</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="trimCheckIntro" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="trim-section-body" id="trimIntroBody">
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 0.8rem; color: #8b9bb4; margin-bottom: 4px; display: block;">โหมดตัด:</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                  <label class="radio-option">
+                    <input type="radio" name="trimIntroMode" value="seconds" id="trimIntroModeSeconds" checked>
+                    <span>จากต้นคลิป (วินาที)</span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" name="trimIntroMode" value="range" id="trimIntroModeRange">
+                    <span>ช่วงเวลาเจาะจง</span>
+                  </label>
+                </div>
+              </div>
+              <div id="trimIntroSecondsInput">
+                <label style="font-size: 0.82rem; color: #cdd6f4; display: block; margin-bottom: 4px;">ตัดกี่วินาทีจากต้นคลิป:</label>
+                <input type="number" id="trimIntroSeconds" class="styled-input full-width" value="90" min="0" max="300" placeholder="วินาที เช่น 90">
+                <small class="helper-text">ตัวอย่าง: 90 = ตัดช่วง 0:00-1:30</small>
+              </div>
+              <div id="trimIntroRangeInput" style="display: none;">
+                <label style="font-size: 0.82rem; color: #cdd6f4; display: block; margin-bottom: 4px;">ช่วงเวลา (เริ่ม-จบ):</label>
+                <input type="text" id="trimIntroRange" class="styled-input full-width" placeholder="เช่น 00:00-01:30 หรือ 0-90">
+                <small class="helper-text">รองรับรูปแบบ MM:SS-MM:SS หรือ วินาที-วินาที</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- ED Section -->
+          <div class="trim-section">
+            <div class="trim-section-header ed-header">
+              <span>🎶 เพลงปิด (Ending / ED)</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="trimCheckOutro" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="trim-section-body" id="trimOutroBody">
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 0.8rem; color: #8b9bb4; margin-bottom: 4px; display: block;">โหมดตัด:</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                  <label class="radio-option">
+                    <input type="radio" name="trimOutroMode" value="seconds" id="trimOutroModeSeconds" checked>
+                    <span>จากท้ายคลิป (วินาที)</span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" name="trimOutroMode" value="range" id="trimOutroModeRange">
+                    <span>ช่วงเวลาเจาะจง</span>
+                  </label>
+                </div>
+              </div>
+              <div id="trimOutroSecondsInput">
+                <label style="font-size: 0.82rem; color: #cdd6f4; display: block; margin-bottom: 4px;">ตัดกี่วินาทีจากท้ายคลิป:</label>
+                <input type="number" id="trimOutroSeconds" class="styled-input full-width" value="90" min="0" max="300" placeholder="วินาที เช่น 90">
+                <small class="helper-text">ตัวอย่าง: 90 = ตัดช่วง (ความยาว - 1:30) ถึงจบ</small>
+              </div>
+              <div id="trimOutroRangeInput" style="display: none;">
+                <label style="font-size: 0.82rem; color: #cdd6f4; display: block; margin-bottom: 4px;">ช่วงเวลา (เริ่ม-จบ):</label>
+                <input type="text" id="trimOutroRange" class="styled-input full-width" placeholder="เช่น 21:30-23:00 หรือ 1290-1380">
+                <small class="helper-text">รองรับรูปแบบ MM:SS-MM:SS หรือ วินาที-วินาที</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Info -->
+        <div id="trimPreviewInfo" style="margin-top: 14px; background: rgba(0, 255, 136, 0.06); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 8px; padding: 12px; display: none;">
+          <div style="font-size: 0.82rem; color: #00ff88;" id="trimPreviewText"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnCancelTrimOpEd">ยกเลิก</button>
+        <button class="btn btn-accent" id="btnConfirmTrimOpEd">✂️ ตัดภาพ OP/ED ออกทันที</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Rights Provenance & Publication Readiness (Phase 6) -->
+  <div class="modal-backdrop" id="modalProvenance" style="display: none;">
+    <div class="modal-card" style="max-width: 880px; width: 95vw;">
+      <div class="modal-header">
+        <h3>📋 การตรวจสอบสิทธิ์ & ความพร้อมก่อนเผยแพร่ (Rights & Publication Readiness)</h3>
+        <button class="btn-close" id="btnCloseProvenanceModal">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <!-- Status Banner -->
+        <div id="readinessStatusBanner" style="padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; background: rgba(255, 170, 0, 0.1); border: 1px solid rgba(255, 170, 0, 0.3);">
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa;">สถานะความพร้อมสำหรับเผยแพร่ภายนอก:</div>
+            <div id="readinessBannerTitle" style="font-size: 1.15rem; font-weight: bold; margin-top: 4px; color: #ffaa00;">Review Required</div>
+          </div>
+          <button class="btn btn-secondary" id="btnRefreshReadiness" style="font-size: 0.8rem; padding: 6px 14px;">🔄 รีเฟรชผลประเมิน</button>
+        </div>
+
+        <!-- Legal Disclaimer Alert -->
+        <div style="background: rgba(255, 180, 0, 0.08); border: 1px solid rgba(255, 180, 0, 0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.82rem; color: #ffca28; line-height: 1.5;">
+          <strong>⚠️ ข้อจำกัดความรับผิดชอบทางกฎหมาย (Legal Notice):</strong>
+          ระบบนี้เป็นเครื่องมือช่วยตัดสินใจทางเทคนิคในการติดตามที่มาและสัญญาอนุญาต ไม่ถือเป็นคำแนะนำทางกฎหมาย ไม่สามารถรับประกันการคุ้มครอง Fair Use หรือการปลอดจากการตรวจจับ Content ID / Rights Manager ได้ การเผยแพร่วิดีโอสู่สาธารณะต้องผ่านการตรวจสอบโดยผู้มีอำนาจตัดสินใจเสมอ
+        </div>
+
+        <!-- Summary Counters -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px;">
+          <div style="background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #888;">สินทรัพย์ทั้งหมด</div>
+            <div id="statTotalAssets" style="font-size: 1.25rem; font-weight: bold; color: #fff;">0</div>
+          </div>
+          <div style="background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.2); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #00ff88;">ได้รับอนุญาต (Authorized)</div>
+            <div id="statAuthorized" style="font-size: 1.25rem; font-weight: bold; color: #00ff88;">0</div>
+          </div>
+          <div style="background: rgba(255,170,0,0.06); border: 1px solid rgba(255,170,0,0.2); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #ffaa00;">ต้องตรวจสอบ (Needs Review)</div>
+            <div id="statNeedsReview" style="font-size: 1.25rem; font-weight: bold; color: #ffaa00;">0</div>
+          </div>
+          <div style="background: rgba(255,68,68,0.06); border: 1px solid rgba(255,68,68,0.2); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #ff4444;">จำกัดสิทธิ์ / หมดอายุ</div>
+            <div id="statRestricted" style="font-size: 1.25rem; font-weight: bold; color: #ff4444;">0</div>
+          </div>
+        </div>
+
+        <!-- Findings / Remediation Box -->
+        <div id="readinessFindingsContainer" style="margin-bottom: 16px;">
+          <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #eee;">ข้อตรวจพบที่ต้องดำเนินการ (Actionable Findings):</h4>
+          <div id="readinessFindingsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+
+        <!-- Asset Provenance Table -->
+        <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: #eee;">รายการสินทรัพย์สื่อและสายวิวัฒนาการ (Asset Provenance & Lineage):</h4>
+        <div style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);">
+                <th style="padding: 10px 12px;">สินทรัพย์ (Asset)</th>
+                <th style="padding: 10px 12px;">ประเภท (Type)</th>
+                <th style="padding: 10px 12px;">สถานะสิทธิ์ (Rights)</th>
+                <th style="padding: 10px 12px;">สัญญาอนุญาต (License)</th>
+                <th style="padding: 10px 12px;">ต้นทาง/สายที่มา (Lineage)</th>
+                <th style="padding: 10px 12px;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="provenanceTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Asset Edit Form (Hidden by default) -->
+        <div id="assetEditFormBox" style="display: none; margin-top: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,255,200,0.3); border-radius: 8px; padding: 14px;">
+          <h4 style="font-size: 0.9rem; margin-bottom: 12px; color: #00f0ff;">แก้ไขข้อมูลสิทธิ์สินทรัพย์: <span id="editAssetTitle"></span></h4>
+          <input type="hidden" id="editAssetId">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label for="editRightsStatus">สถานะสิทธิ์ (Rights Status):</label>
+              <select id="editRightsStatus" class="styled-select" style="width: 100%;">
+                <option value="needs_review">needs_review (ต้องตรวจสอบ)</option>
+                <option value="authorized">authorized (ได้รับอนุญาต / มีหลักฐาน)</option>
+                <option value="restricted">restricted (จำกัดการใช้งาน)</option>
+                <option value="expired">expired (สิทธิ์หมดอายุ)</option>
+                <option value="unknown">unknown (ไม่ทราบสิทธิ์)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="editLicense">ชื่อสัญญาอนุญาต (License Name):</label>
+              <input type="text" id="editLicense" class="styled-input" placeholder="เช่น OFL-1.1, Royalty-Free, Custom License">
+            </div>
+            <div class="form-group">
+              <label for="editEvidence">หลักฐานการอนุญาต (Evidence Reference):</label>
+              <input type="text" id="editEvidence" class="styled-input" placeholder="เช่น เอกสารสัญญา, ใบอนุญาต, ลิงก์สัญญา">
+            </div>
+            <div class="form-group">
+              <label for="editReviewedBy">ผู้ตรวจสอบ (Reviewed By - สำหรับ Authorized):</label>
+              <input type="text" id="editReviewedBy" class="styled-input" placeholder="ชื่อผู้ตรวจสอบ / Reviewer ID">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="editAttribution">ข้อความให้เครดิต (Attribution / Credit Text):</label>
+              <input type="text" id="editAttribution" class="styled-input" placeholder="ข้อความที่ต้องระบุในคำอธิบายคลิป">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="editReviewerNotes">บันทึกของผู้ตรวจสอบ (Reviewer Notes):</label>
+              <textarea id="editReviewerNotes" class="styled-input" rows="2" placeholder="รายละเอียดการตรวจสอบและเงื่อนไขเพิ่มเติม"></textarea>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px;">
+            <button class="btn btn-outline" id="btnCancelEditAsset">ยกเลิก</button>
+            <button class="btn btn-primary" id="btnSaveAssetProvenance">💾 บันทึกข้อมูลสิทธิ์</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnCloseProvenanceModalFooter">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

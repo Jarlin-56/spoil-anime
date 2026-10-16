@@ -1,0 +1,5 @@
+file 'C:\Users\User\Desktop\สปอย\projects\demo_project\audio_segments\seg_0001.wav'
+file 'C:\Users\User\Desktop\สปอย\projects\demo_project\audio_segments\seg_0002.wav'
+file 'C:\Users\User\Desktop\สปอย\projects\demo_project\audio_segments\seg_0003.wav'
+file 'C:\Users\User\Desktop\สปอย\projects\demo_project\audio_segments\seg_0004.wav'
+file 'C:\Users\User\Desktop\สปอย\projects\demo_project\audio_segments\seg_0005.wav'

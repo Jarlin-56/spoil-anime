@@ -1,0 +1,42 @@
+[
+  {
+    "id": "frame_0001",
+    "filename": "frame_0001.jpg",
+    "path": "projects/demo_project/frames/frame_0001.jpg",
+    "index": 1,
+    "timestamp": 10.0,
+    "time_str": "00:10"
+  },
+  {
+    "id": "frame_0002",
+    "filename": "frame_0002.jpg",
+    "path": "projects/demo_project/frames/frame_0002.jpg",
+    "index": 2,
+    "timestamp": 35.0,
+    "time_str": "00:35"
+  },
+  {
+    "id": "frame_0003",
+    "filename": "frame_0003.jpg",
+    "path": "projects/demo_project/frames/frame_0003.jpg",
+    "index": 3,
+    "timestamp": 60.0,
+    "time_str": "01:00"
+  },
+  {
+    "id": "frame_0004",
+    "filename": "frame_0004.jpg",
+    "path": "projects/demo_project/frames/frame_0004.jpg",
+    "index": 4,
+    "timestamp": 85.0,
+    "time_str": "01:25"
+  },
+  {
+    "id": "frame_0005",
+    "filename": "frame_0005.jpg",
+    "path": "projects/demo_project/frames/frame_0005.jpg",
+    "index": 5,
+    "timestamp": 110.0,
+    "time_str": "01:50"
+  }
+]

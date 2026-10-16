@@ -1,0 +1,34 @@
+{
+  "name": "anime-recap-pipeline",
+  "version": "1.0.0",
+  "description": "Automated Anime Recap Pipeline (Motion Comic & Asset Provenance Engine)",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "verify": "node scripts/verify_pipeline.js",
+    "verify:fast": "node scripts/verify_pipeline.js --fast",
+    "verify:security": "node scripts/verify_pipeline.js --security",
+    "verify:media": "node scripts/verify_pipeline.js --media",
+    "verify:live": "node scripts/verify_pipeline.js --live",
+    "verify:all": "node scripts/verify_pipeline.js --all"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "multer": "^2.4.0",
+    "proxy-addr": "^2.0.8",
+    "ws": "^8.18.0"
+  },
+  "keywords": [
+    "anime",
+    "recap",
+    "motion-comic",
+    "provenance",
+    "rights-review",
+    "tts",
+    "ffmpeg"
+  ],
+  "author": "Antigravity",
+  "license": "MIT"
+}

@@ -1,0 +1,25 @@
+[Script Info]
+Title: Anime Recap Thai Subtitles
+ScriptType: v4.00+
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+PlayResX: 1920
+PlayResY: 1080
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Kanit,58,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,4.5,2.5,2,40,40,65,1
+Style: Highlight,Kanit,62,&H0000FFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,5.0,3.0,2,40,40,65,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:03.45,Default,,0,0,0,,เรื่องราวเริ่มต้นขึ้น\Nในวันที่ท้องฟ้าเปลี่ยนเป็นสีเลือด
+Dialogue: 0,0:00:03.45,0:00:06.50,Default,,0,0,0,,สัญญาณเตือนภัยดังระงม\Nไปทั่วทั้งอาณาจักร
+Dialogue: 0,0:00:07.06,0:00:09.46,Default,,0,0,0,,เหล่าสัตว์อสูรโบราณนับหมื่นตัว
+Dialogue: 0,0:00:09.46,0:00:12.79,Default,,0,0,0,,ทะลักออกมาจากรอย\Nแยกมิติอย่างไม่ทันตั้งตัว
+Dialogue: 0,0:00:13.33,0:00:16.13,Default,,0,0,0,,ชาวเมืองต่างพากันวิ่งหนี\Nเอาชีวิตรอด
+Dialogue: 0,0:00:16.13,0:00:19.97,Default,,0,0,0,,แต่ในวินาทีนั้นเอง\Nชายหนุ่มชุดดำก็ได้ก้าวออกมา
+Dialogue: 0,0:00:20.53,0:00:23.30,Default,,0,0,0,,เพียงแค่เขาปลดปล่อยดาบสายฟ้าออกมา
+Dialogue: 0,0:00:23.30,0:00:27.03,Default,,0,0,0,,อสูรทั้งฝูงก็แหลกสลายกลาย\Nเป็นผุยผงในพริบตาเดียว!
+Dialogue: 0,0:00:27.56,0:00:30.51,Default,,0,0,0,,และนี่คือจุด\Nเริ่มต้นของการทวงคืนบัลลังก์
+Dialogue: 0,0:00:30.51,0:00:34.59,Default,,0,0,0,,กดติดตามช่องไว้\Nแล้วรอพบกับความมันส์ตอนต่อไปได้เลยครับ

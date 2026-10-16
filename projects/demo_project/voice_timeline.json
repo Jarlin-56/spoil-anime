@@ -1,0 +1,300 @@
+{
+  "voice": "th-TH-NiwatNeural",
+  "rate": "+5%",
+  "fps": 30,
+  "sample_rate": 48000,
+  "total_duration": 35.0333,
+  "total_frames": 1051,
+  "lines_count": 5,
+  "master_audio": "projects\\demo_project\\voiceover_master.mp3",
+  "master_wav": "projects\\demo_project\\voiceover_master.wav",
+  "srt_file": "projects\\demo_project\\subtitles.srt",
+  "ass_file": "projects\\demo_project\\subtitles.ass",
+  "timeline": [
+    {
+      "id": 1,
+      "order": 1,
+      "index": 1,
+      "storyBeat": "Beat_1",
+      "narration": "เรื่องราวเริ่มต้นขึ้นในวันที่ท้องฟ้าเปลี่ยนเป็นสีเลือด สัญญาณเตือนภัยดังระงมไปทั่วทั้งอาณาจักร",
+      "text": "เรื่องราวเริ่มต้นขึ้นในวันที่ท้องฟ้าเปลี่ยนเป็นสีเลือด สัญญาณเตือนภัยดังระงมไปทั่วทั้งอาณาจักร",
+      "imageSource": "frame_0001",
+      "image_id": "frame_0001",
+      "action_type": "shock",
+      "wordCount": 17,
+      "startTime": 0.0,
+      "endTime": 6.9667,
+      "duration": 6.9667,
+      "frame_start": 0,
+      "frame_end": 209,
+      "frame_count": 209,
+      "estimatedNarrationDuration": 6.623,
+      "actualAudioDuration": 6.504,
+      "speech_duration": 6.504,
+      "paddingBefore": 0.15,
+      "paddingAfter": 0.3,
+      "subtitleSegments": [
+        {
+          "index": 1,
+          "text": "เรื่องราวเริ่มต้นขึ้น\nในวันที่ท้องฟ้าเปลี่ยนเป็นสีเลือด",
+          "start_time": 0.1,
+          "end_time": 3.4524,
+          "duration": 3.3524
+        },
+        {
+          "index": 2,
+          "text": "สัญญาณเตือนภัยดังระงม\nไปทั่วทั้งอาณาจักร",
+          "start_time": 3.4524,
+          "end_time": 6.504,
+          "duration": 3.0516
+        }
+      ],
+      "sentence_boundaries": [
+        {
+          "text": "เรื่องราวเริ่มต้นขึ้นในวันที่ท้องฟ้าเปลี่ยนเป็นสีเลือด",
+          "offset": 0.1,
+          "duration": 3.4024
+        },
+        {
+          "text": "สัญญาณเตือนภัยดังระงมไปทั่วทั้งอาณาจักร",
+          "offset": 3.4524,
+          "duration": 3.0
+        }
+      ],
+      "audioUrl": "projects\\demo_project\\audio_segments\\seg_0001.mp3",
+      "audio_file": "projects\\demo_project\\audio_segments\\seg_0001.mp3",
+      "audio_wav": "projects\\demo_project\\audio_segments\\seg_0001.wav",
+      "transition": "ken_burns",
+      "zoom": "dynamic",
+      "status": "timing_ready"
+    },
+    {
+      "id": 2,
+      "order": 2,
+      "index": 2,
+      "storyBeat": "Beat_2",
+      "narration": "เหล่าสัตว์อสูรโบราณนับหมื่นตัว ทะลักออกมาจากรอยแยกมิติอย่างไม่ทันตั้งตัว",
+      "text": "เหล่าสัตว์อสูรโบราณนับหมื่นตัว ทะลักออกมาจากรอยแยกมิติอย่างไม่ทันตั้งตัว",
+      "imageSource": "frame_0002",
+      "image_id": "frame_0002",
+      "action_type": "battle",
+      "wordCount": 14,
+      "startTime": 6.9667,
+      "endTime": 13.2333,
+      "duration": 6.2667,
+      "frame_start": 209,
+      "frame_end": 397,
+      "frame_count": 188,
+      "estimatedNarrationDuration": 5.216,
+      "actualAudioDuration": 5.832,
+      "speech_duration": 5.832,
+      "paddingBefore": 0.15,
+      "paddingAfter": 0.3,
+      "subtitleSegments": [
+        {
+          "index": 1,
+          "text": "เหล่าสัตว์อสูรโบราณนับหมื่นตัว",
+          "start_time": 7.0667,
+          "end_time": 9.4667,
+          "duration": 2.4
+        },
+        {
+          "index": 2,
+          "text": "ทะลักออกมาจากรอย\nแยกมิติอย่างไม่ทันตั้งตัว",
+          "start_time": 9.4667,
+          "end_time": 12.7987,
+          "duration": 3.332
+        }
+      ],
+      "sentence_boundaries": [
+        {
+          "text": "เหล่าสัตว์อสูรโบราณนับหมื่นตัว",
+          "offset": 0.1,
+          "duration": 2.45
+        },
+        {
+          "text": "ทะลักออกมาจากรอยแยกมิติอย่างไม่ทันตั้งตัว",
+          "offset": 2.5,
+          "duration": 3.2619
+        }
+      ],
+      "audioUrl": "projects\\demo_project\\audio_segments\\seg_0002.mp3",
+      "audio_file": "projects\\demo_project\\audio_segments\\seg_0002.mp3",
+      "audio_wav": "projects\\demo_project\\audio_segments\\seg_0002.wav",
+      "transition": "ken_burns",
+      "zoom": "dynamic",
+      "status": "timing_ready"
+    },
+    {
+      "id": 3,
+      "order": 3,
+      "index": 3,
+      "storyBeat": "Beat_3",
+      "narration": "ชาวเมืองต่างพากันวิ่งหนีเอาชีวิตรอด แต่ในวินาทีนั้นเอง ชายหนุ่มชุดดำก็ได้ก้าวออกมา",
+      "text": "ชาวเมืองต่างพากันวิ่งหนีเอาชีวิตรอด แต่ในวินาทีนั้นเอง ชายหนุ่มชุดดำก็ได้ก้าวออกมา",
+      "imageSource": "frame_0003",
+      "image_id": "frame_0003",
+      "action_type": "normal",
+      "wordCount": 15,
+      "startTime": 13.2333,
+      "endTime": 20.4333,
+      "duration": 7.2,
+      "frame_start": 397,
+      "frame_end": 613,
+      "frame_count": 216,
+      "estimatedNarrationDuration": 5.802,
+      "actualAudioDuration": 6.744,
+      "speech_duration": 6.744,
+      "paddingBefore": 0.15,
+      "paddingAfter": 0.3,
+      "subtitleSegments": [
+        {
+          "index": 1,
+          "text": "ชาวเมืองต่างพากันวิ่งหนี\nเอาชีวิตรอด",
+          "start_time": 13.3333,
+          "end_time": 16.1381,
+          "duration": 2.8048
+        },
+        {
+          "index": 2,
+          "text": "แต่ในวินาทีนั้นเอง\nชายหนุ่มชุดดำก็ได้ก้าวออกมา",
+          "start_time": 16.1381,
+          "end_time": 19.9773,
+          "duration": 3.8392
+        }
+      ],
+      "sentence_boundaries": [
+        {
+          "text": "ชาวเมืองต่างพากันวิ่งหนีเอาชีวิตรอด",
+          "offset": 0.1,
+          "duration": 2.8548
+        },
+        {
+          "text": "แต่ในวินาทีนั้นเอง ชายหนุ่มชุดดำก็ได้ก้าวออกมา",
+          "offset": 2.9048,
+          "duration": 3.7857
+        }
+      ],
+      "audioUrl": "projects\\demo_project\\audio_segments\\seg_0003.mp3",
+      "audio_file": "projects\\demo_project\\audio_segments\\seg_0003.mp3",
+      "audio_wav": "projects\\demo_project\\audio_segments\\seg_0003.wav",
+      "transition": "ken_burns",
+      "zoom": "dynamic",
+      "status": "timing_ready"
+    },
+    {
+      "id": 4,
+      "order": 4,
+      "index": 4,
+      "storyBeat": "Beat_4",
+      "narration": "เพียงแค่เขาปลดปล่อยดาบสายฟ้าออกมา อสูรทั้งฝูงก็แหลกสลายกลายเป็นผุยผงในพริบตาเดียว!",
+      "text": "เพียงแค่เขาปลดปล่อยดาบสายฟ้าออกมา อสูรทั้งฝูงก็แหลกสลายกลายเป็นผุยผงในพริบตาเดียว!",
+      "imageSource": "frame_0004",
+      "image_id": "frame_0004",
+      "action_type": "battle",
+      "wordCount": 17,
+      "startTime": 20.4333,
+      "endTime": 27.4667,
+      "duration": 7.0333,
+      "frame_start": 613,
+      "frame_end": 824,
+      "frame_count": 211,
+      "estimatedNarrationDuration": 6.286,
+      "actualAudioDuration": 6.6,
+      "speech_duration": 6.6,
+      "paddingBefore": 0.15,
+      "paddingAfter": 0.3,
+      "subtitleSegments": [
+        {
+          "index": 1,
+          "text": "เพียงแค่เขาปลดปล่อยดาบสายฟ้าออกมา",
+          "start_time": 20.5333,
+          "end_time": 23.3023,
+          "duration": 2.769
+        },
+        {
+          "index": 2,
+          "text": "อสูรทั้งฝูงก็แหลกสลายกลาย\nเป็นผุยผงในพริบตาเดียว!",
+          "start_time": 23.3023,
+          "end_time": 27.0333,
+          "duration": 3.731
+        }
+      ],
+      "sentence_boundaries": [
+        {
+          "text": "เพียงแค่เขาปลดปล่อยดาบสายฟ้าออกมา",
+          "offset": 0.1,
+          "duration": 2.819
+        },
+        {
+          "text": "อสูรทั้งฝูงก็แหลกสลายกลายเป็นผุยผงในพริบตาเดียว!",
+          "offset": 2.869,
+          "duration": 3.6786
+        }
+      ],
+      "audioUrl": "projects\\demo_project\\audio_segments\\seg_0004.mp3",
+      "audio_file": "projects\\demo_project\\audio_segments\\seg_0004.mp3",
+      "audio_wav": "projects\\demo_project\\audio_segments\\seg_0004.wav",
+      "transition": "ken_burns",
+      "zoom": "dynamic",
+      "status": "timing_ready"
+    },
+    {
+      "id": 5,
+      "order": 5,
+      "index": 5,
+      "storyBeat": "Beat_5",
+      "narration": "และนี่คือจุดเริ่มต้นของการทวงคืนบัลลังก์ กดติดตามช่องไว้ แล้วรอพบกับความมันส์ตอนต่อไปได้เลยครับ",
+      "text": "และนี่คือจุดเริ่มต้นของการทวงคืนบัลลังก์ กดติดตามช่องไว้ แล้วรอพบกับความมันส์ตอนต่อไปได้เลยครับ",
+      "imageSource": "frame_0005",
+      "image_id": "frame_0005",
+      "action_type": "drama",
+      "wordCount": 19,
+      "startTime": 27.4667,
+      "endTime": 35.0333,
+      "duration": 7.5667,
+      "frame_start": 824,
+      "frame_end": 1051,
+      "frame_count": 227,
+      "estimatedNarrationDuration": 6.96,
+      "actualAudioDuration": 7.128,
+      "speech_duration": 7.128,
+      "paddingBefore": 0.15,
+      "paddingAfter": 0.3,
+      "subtitleSegments": [
+        {
+          "index": 1,
+          "text": "และนี่คือจุด\nเริ่มต้นของการทวงคืนบัลลังก์",
+          "start_time": 27.5667,
+          "end_time": 30.5143,
+          "duration": 2.9476
+        },
+        {
+          "index": 2,
+          "text": "กดติดตามช่องไว้\nแล้วรอพบกับความมันส์ตอนต่อไปได้เลยครับ",
+          "start_time": 30.5143,
+          "end_time": 34.5947,
+          "duration": 4.0804
+        }
+      ],
+      "sentence_boundaries": [
+        {
+          "text": "และนี่คือจุดเริ่มต้นของการทวงคืนบัลลังก์",
+          "offset": 0.1,
+          "duration": 2.9976
+        },
+        {
+          "text": "กดติดตามช่องไว้ แล้วรอพบกับความมันส์ตอนต่อไปได้เลยครับ",
+          "offset": 3.0476,
+          "duration": 4.0238
+        }
+      ],
+      "audioUrl": "projects\\demo_project\\audio_segments\\seg_0005.mp3",
+      "audio_file": "projects\\demo_project\\audio_segments\\seg_0005.mp3",
+      "audio_wav": "projects\\demo_project\\audio_segments\\seg_0005.wav",
+      "transition": "ken_burns",
+      "zoom": "dynamic",
+      "status": "timing_ready"
+    }
+  ]
+}

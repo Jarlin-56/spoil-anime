@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Python build & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.vscode/*
+!.vscode/settings.json
+
+# Environment & credentials
+.env
+.env.*
+*.local
+
+# Backup files & legacy snapshots
+*.bak
+*.bak.*
+*.pre-*.bak
+
+# Temporary test media files in root
+test_preview_tmp.mp3
+test_sine.mp3
+test_voice.mp3
+*.log
+
+# Project runtime data & heavy uploads (prevent uploading 8.5 GB media & copyright content)
+projects/*
+!projects/.gitkeep
+!projects/demo_project/
+projects/demo_project/**/*.mp4
+projects/demo_project/**/*.wav
+projects/demo_project/temp_clips_*
+projects/demo_project/audio_segments/
