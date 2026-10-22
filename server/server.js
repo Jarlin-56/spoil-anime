@@ -726,6 +726,42 @@ function runPythonScript(args, cwd = BASE_DIR) {
 }
 
 // ==========================================
+// Concat NLE Desktop Resolver (Step 2)
+// ==========================================
+function resolveConcatBinary() {
+  if (process.env.CONCAT_BIN) {
+    if (fs.existsSync(process.env.CONCAT_BIN)) {
+      return process.env.CONCAT_BIN;
+    }
+  }
+
+  const localAppData = process.env.LOCALAPPDATA || '';
+  if (localAppData) {
+    const defaultInstall = path.join(localAppData, 'Programs', 'Concat', 'concat.exe');
+    if (fs.existsSync(defaultInstall)) {
+      return defaultInstall;
+    }
+  }
+
+  const programFiles = process.env.ProgramFiles || 'C:\\Program Files';
+  const pfInstall = path.join(programFiles, 'Concat', 'concat.exe');
+  if (fs.existsSync(pfInstall)) {
+    return pfInstall;
+  }
+
+  const whichCmd = process.platform === 'win32' ? 'where' : 'which';
+  const test = spawnSync(whichCmd, ['concat.exe'], { encoding: 'utf-8', windowsHide: true });
+  if (!test.error && test.status === 0 && test.stdout) {
+    const firstLine = test.stdout.split(/\r?\n/)[0].trim();
+    if (firstLine && fs.existsSync(firstLine)) {
+      return firstLine;
+    }
+  }
+
+  return null;
+}
+
+// ==========================================
 // Centralized Security & Validation (SEC-01 & SEC-02)
 // ==========================================
 
@@ -734,6 +770,9 @@ const ALLOWED_TTS_VOICES = new Set([
   'th-TH-PremwadeeNeural'
 ]);
 const TTS_RATE_REGEX = /^[+-]?\d{1,3}%$/;
+const TTS_PITCH_REGEX = /^[+-]?\d{1,2}Hz$/;
+const ALLOWED_ACTION_TYPES = new Set(['normal', 'battle', 'shock', 'drama']);
+const ALLOWED_VOICE_DIRECTIONS = new Set(['conversational', 'suspenseful', 'energetic', 'surprised', 'dramatic', 'dry_humor']);
 const MAX_PREVIEW_TEXT_LENGTH = 500;
 const TTS_TIMEOUT_MS = 15000;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024; // 10MB
@@ -2437,9 +2476,137 @@ app.post('/api/projects/:id/provenance/:assetId/verify-hash', async (req, res) =
   }
 });
 
+// ==========================================
+// 12.6 Concat NLE Integration Endpoints (Step 2)
+// ==========================================
+
+// 12.6.1 Export Project to Concat Format
+app.post('/api/projects/:id/export-concat', async (req, res) => {
+  const pId = req.params.id;
+  const pDir = req.projectDir || resolveValidatedProjectDir(pId);
+  if (!pDir) return res.status(400).json({ success: false, error: 'Invalid project ID' });
+  if (!fs.existsSync(pDir)) return res.status(404).json({ success: false, error: 'Project not found' });
+
+  try {
+    await runPythonScript(['-m', 'core.concat_exporter', pId], BASE_DIR);
+    
+    const concatJsonPath = path.join(pDir, 'concat_project', 'concat.json');
+    if (!fs.existsSync(concatJsonPath)) {
+      throw new Error('Export script finished but concat.json was not created.');
+    }
+
+    const concatDoc = JSON.parse(fs.readFileSync(concatJsonPath, 'utf-8'));
+    return res.json({
+      success: true,
+      message: 'Project successfully exported to Concat format',
+      concatProjectDir: path.join(pDir, 'concat_project'),
+      concatJsonPath,
+      timelines: concatDoc.timelines ? concatDoc.timelines.map(t => t.name) : [],
+      scenesCount: concatDoc.clips ? concatDoc.clips.filter(c => c.trackId === 'T_VIDEO').length : 0
+    });
+  } catch (err) {
+    console.error('[Concat Export Error]', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 12.6.2 Open in Concat Desktop Application (Smart Auto-Sync & Detached Process)
+app.post('/api/projects/:id/open-in-concat', async (req, res) => {
+  const pId = req.params.id;
+  const pDir = req.projectDir || resolveValidatedProjectDir(pId);
+  if (!pDir) return res.status(400).json({ success: false, error: 'Invalid project ID' });
+  if (!fs.existsSync(pDir)) return res.status(404).json({ success: false, error: 'Project not found' });
+
+  // 1. Resolve Concat Binary
+  const concatBin = resolveConcatBinary();
+  if (!concatBin) {
+    return res.status(404).json({
+      success: false,
+      error: 'Concat executable (concat.exe) was not found on this system.',
+      downloadUrl: 'https://concatenate.pages.dev/#download'
+    });
+  }
+
+  const concatProjectDir = path.join(pDir, 'concat_project');
+  const concatJsonPath = path.join(concatProjectDir, 'concat.json');
+
+  // 2. Smart Auto-Sync: Check if export needed, outdated, or track order invalid
+  let needsExport = !fs.existsSync(concatJsonPath);
+  if (!needsExport) {
+    try {
+      const concatStat = fs.statSync(concatJsonPath);
+      const voiceTlPath = path.join(pDir, 'voice_timeline.json');
+      const scriptPath = path.join(pDir, 'script.json');
+      const exporterPath = path.join(BASE_DIR, 'core', 'concat_exporter.py');
+
+      if (fs.existsSync(exporterPath) && fs.statSync(exporterPath).mtimeMs > concatStat.mtimeMs) {
+        needsExport = true;
+      } else if (fs.existsSync(voiceTlPath) && fs.statSync(voiceTlPath).mtimeMs > concatStat.mtimeMs) {
+        needsExport = true;
+      } else if (fs.existsSync(scriptPath) && fs.statSync(scriptPath).mtimeMs > concatStat.mtimeMs) {
+        needsExport = true;
+      } else {
+        // Deep validate track ordering in existing concat.json:
+        // Concat's GPU compositor requires T_VIDEO (background) before T_SUB (overlay)
+        const doc = JSON.parse(fs.readFileSync(concatJsonPath, 'utf-8'));
+        const tracks = doc.tracks || [];
+        const vIdx = tracks.findIndex(t => t.id === 'T_VIDEO');
+        const sIdx = tracks.findIndex(t => t.id === 'T_SUB');
+        if (vIdx === -1 || sIdx === -1 || vIdx >= sIdx) {
+          needsExport = true;
+        }
+      }
+    } catch (_) {
+      needsExport = true;
+    }
+  }
+
+  try {
+    // Terminate any stale concat.exe instances before export/launch
+    // to prevent background in-memory state from overwriting concat.json on disk
+    if (process.platform === 'win32') {
+      try {
+        spawnSync('taskkill', ['/F', '/IM', 'concat.exe'], { windowsHide: true });
+      } catch (_) {}
+    }
+
+    if (needsExport) {
+      console.log(`[*] Auto-syncing Concat project for ${pId} before launch...`);
+      await runPythonScript(['-m', 'core.concat_exporter', pId], BASE_DIR);
+    }
+
+    // 3. Launch Concat as Fully Detached Process
+    console.log(`[*] Launching Concat: "${concatBin}" --project "${concatProjectDir}"`);
+    const child = spawn(concatBin, ['--project', concatProjectDir], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: false
+    });
+    child.unref();
+
+    return res.json({
+      success: true,
+      message: 'Concat application launched successfully',
+      pid: child.pid,
+      concatProjectDir,
+      autoSynced: needsExport
+    });
+  } catch (err) {
+    console.error('[Concat Launch Error]', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // 13. Quick Preview TTS line (SEC-01 Safe Implementation)
 app.post('/api/tts-preview', async (req, res) => {
-  const { text, voice = 'th-TH-NiwatNeural', rate = '+5%' } = req.body || {};
+  const {
+    text,
+    voice = 'th-TH-NiwatNeural',
+    rate = '+5%',
+    action_type,
+    voice_direction,
+    pitch
+  } = req.body || {};
 
   // Server-side validation
   if (!text || typeof text !== 'string') {
@@ -2463,6 +2630,24 @@ app.post('/api/tts-preview', async (req, res) => {
   const rateNum = parseInt(rate.replace('%', '').replace('+', ''), 10);
   if (isNaN(rateNum) || rateNum < -50 || rateNum > 100) {
     return res.status(400).json({ success: false, error: 'Speech rate must be between -50% and +100%' });
+  }
+
+  if (action_type !== undefined && action_type !== null) {
+    if (typeof action_type !== 'string' || !ALLOWED_ACTION_TYPES.has(action_type)) {
+      return res.status(400).json({ success: false, error: 'Invalid action_type parameter' });
+    }
+  }
+
+  if (voice_direction !== undefined && voice_direction !== null) {
+    if (typeof voice_direction !== 'string' || !ALLOWED_VOICE_DIRECTIONS.has(voice_direction)) {
+      return res.status(400).json({ success: false, error: 'Invalid voice_direction parameter' });
+    }
+  }
+
+  if (pitch !== undefined && pitch !== null) {
+    if (typeof pitch !== 'string' || !TTS_PITCH_REGEX.test(pitch)) {
+      return res.status(400).json({ success: false, error: 'Invalid pitch format' });
+    }
   }
 
   // Safe internal temporary file generation
@@ -2536,6 +2721,9 @@ app.post('/api/tts-preview', async (req, res) => {
         text: trimmedText,
         voice,
         rate,
+        action_type: action_type || undefined,
+        voice_direction: voice_direction || undefined,
+        pitch: pitch || undefined,
         output_path: tempFile
       });
       proc.stdin.write(payload, 'utf-8', () => {
@@ -2654,6 +2842,7 @@ module.exports = {
   parseHost,
   getAllowedRemoteHosts,
   resolvePythonInterpreter,
+  resolveConcatBinary,
   PYTHON_PATH,
   executeTrimTransaction,
   recoverProjectTrimTransactions,

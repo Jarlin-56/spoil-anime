@@ -44,3 +44,93 @@ VOICES = {
 }
 
 DEFAULT_VOICE = VOICES["niwat"]
+
+# Voice Delivery Profiles for Edge-TTS (Thai)
+# Maps voice directions to conservative rate and pitch offsets relative to baseline
+VOICE_PROFILES = {
+    "conversational": {
+        "rate_offset": 0,    # +0% (neutral narrative baseline)
+        "pitch_offset": 0,   # +0Hz (natural baseline)
+        "description": "น้ำเสียงเล่าเรื่องเป็นธรรมชาติ สบายๆ เป็นกันเอง"
+    },
+    "energetic": {
+        "rate_offset": 8,    # +8% (brisk, engaging, battle/action)
+        "pitch_offset": 3,   # +3Hz (slightly lifted tone for excitement)
+        "description": "น้ำเสียงกระฉับกระเฉง ตื่นเต้น เหมาะกับฉากต่อสู้/ไคลแม็กซ์"
+    },
+    "surprised": {
+        "rate_offset": 4,    # +4% (alert, sudden turn)
+        "pitch_offset": 4,   # +4Hz (noticeably raised pitch for shock/reveal)
+        "description": "น้ำเสียงประหลาดใจ ตกใจ ตื่นเต้นกับจุดหักมุม"
+    },
+    "suspenseful": {
+        "rate_offset": -4,   # -4% (slightly slowed, deliberate pacing)
+        "pitch_offset": -1,  # -1Hz (subtle drop for tension/mystery)
+        "description": "น้ำเสียงลุ้นระทึก น่าสงสัย ชวนติดตาม"
+    },
+    "dramatic": {
+        "rate_offset": -4,   # -4% (slower cadence, emotional weight)
+        "pitch_offset": -2,  # -2Hz (somber, grounded tone for emotional beats)
+        "description": "น้ำเสียงซึ้ง ดราม่า จริงจัง มีน้ำหนักทางอารมณ์"
+    },
+    "dry_humor": {
+        "rate_offset": 2,    # +2% (matter-of-fact, deadpan)
+        "pitch_offset": -1,  # -1Hz (lowered monotone inflection for witty remarks)
+        "description": "น้ำเสียงตลกหน้าตาย เหน็บแนมเบาๆ อารมณ์ขันเรียบเฉย"
+    }
+}
+
+DEFAULT_VOICE_PROFILE = "conversational"
+
+# Fallback mapping from legacy action_type to voice_direction
+ACTION_TYPE_TO_VOICE_DIRECTION = {
+    "normal": "conversational",
+    "battle": "energetic",
+    "shock": "surprised",
+    "drama": "dramatic"
+}
+
+def resolve_voice_profile(
+    action_type: str = "normal",
+    voice_direction: str = None,
+    base_rate_str: str = "+5%"
+) -> tuple:
+    """
+    Resolves the effective voice_direction, rate string, and pitch string.
+    Ensures safe bounded values and full backward compatibility with legacy action_type.
+    Returns: (resolved_direction, effective_rate_str, effective_pitch_str)
+    """
+    direction = None
+    if voice_direction and isinstance(voice_direction, str):
+        v_clean = voice_direction.strip().lower()
+        if v_clean in VOICE_PROFILES:
+            direction = v_clean
+    
+    if not direction and action_type and isinstance(action_type, str):
+        a_clean = action_type.strip().lower()
+        direction = ACTION_TYPE_TO_VOICE_DIRECTION.get(a_clean)
+        
+    if not direction:
+        direction = DEFAULT_VOICE_PROFILE
+        
+    # Parse base rate
+    base_rate_val = 5
+    if base_rate_str and isinstance(base_rate_str, str):
+        try:
+            cleaned = base_rate_str.replace("%", "").replace("+", "").strip()
+            base_rate_val = int(cleaned)
+        except Exception:
+            base_rate_val = 5
+            
+    profile = VOICE_PROFILES[direction]
+    
+    # Calculate effective rate with conservative bounds (-30% to +60%)
+    eff_rate_num = max(-30, min(60, base_rate_val + profile["rate_offset"]))
+    eff_rate_str = f"{eff_rate_num:+d}%"
+    
+    # Calculate effective pitch with conservative bounds (-15Hz to +15Hz)
+    eff_pitch_num = max(-15, min(15, profile["pitch_offset"]))
+    eff_pitch_str = f"{eff_pitch_num:+d}Hz"
+    
+    return direction, eff_rate_str, eff_pitch_str
+

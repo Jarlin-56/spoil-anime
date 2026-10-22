@@ -185,6 +185,34 @@ async function runTests() {
       assert.strictEqual(afterFiles.length, beforeFiles.length);
     });
 
+    await test('POST /api/tts-preview accepts optional voice_direction and action_type', async () => {
+      const res = await makeRequest('POST', '/api/tts-preview', {
+        text: 'ทดสอบเสียงพากย์ฉากต่อสู้',
+        voice: 'th-TH-NiwatNeural',
+        rate: '+5%',
+        action_type: 'battle',
+        voice_direction: 'energetic'
+      });
+
+      assert.strictEqual(res.statusCode, 200);
+      assert.strictEqual(res.headers['content-type'], 'audio/mpeg');
+      assert.ok(res.rawBuffer.length > 2000, `Audio buffer too small: ${res.rawBuffer.length} bytes`);
+    });
+
+    await test('POST /api/tts-preview rejects invalid action_type or voice_direction', async () => {
+      const res1 = await makeRequest('POST', '/api/tts-preview', {
+        text: 'ข้อความทดสอบ',
+        action_type: 'invalid_action_xyz'
+      });
+      assert.strictEqual(res1.statusCode, 400);
+
+      const res2 = await makeRequest('POST', '/api/tts-preview', {
+        text: 'ข้อความทดสอบ',
+        voice_direction: 'invalid_direction_123'
+      });
+      assert.strictEqual(res2.statusCode, 400);
+    });
+
     // 3. SentenceBoundary Metadata & Pipeline Integration
     console.log('\n--- Suite 3: SentenceBoundary Metadata Extraction & Pipeline Integration ---');
     await test('edge-tts captures SentenceBoundary timestamps and integrates into timeline schema', async () => {

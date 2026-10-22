@@ -41,3 +41,4 @@ projects/demo_project/**/*.mp4
 projects/demo_project/**/*.wav
 projects/demo_project/temp_clips_*
 projects/demo_project/audio_segments/
+projects/**/concat_project/cache/

@@ -119,7 +119,12 @@ async function main() {
       path.join('tests', 'test_av_synchronization.py'),
       path.join('tests', 'test_subtitle_font_rendering.py'),
       path.join('tests', 'test_timing_pipeline.py'),
-      path.join('tests', 'test_narration_generation.py')
+      path.join('tests', 'test_narration_generation.py'),
+      path.join('tests', 'test_narration_quality_phase1.py'),
+      path.join('tests', 'test_listening_pack_structure.py'),
+      path.join('scripts', 'generate_listening_pack.py'),
+      path.join('tests', 'test_gemini_poc_structure.py'),
+      path.join('scripts', 'poc_gemini_tts_comparison.py')
     ]);
     if (!okPyCompile) anyDeterministicFailed = true;
 

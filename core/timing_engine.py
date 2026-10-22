@@ -92,10 +92,17 @@ def estimate_speech_duration(text: str, voice: str = "th-TH-NiwatNeural", rate_p
     return max(0.8, round(adjusted_est, 3))
 
 
-def compute_tts_cache_key(text: str, voice: str = "th-TH-NiwatNeural", rate: str = "+5%") -> str:
-    """Compute MD5 hash for TTS caching."""
-    raw = f"{text.strip()}|{voice}|{rate}"
+def compute_tts_cache_key(
+    text: str,
+    voice: str = "th-TH-NiwatNeural",
+    rate: str = "+5%",
+    pitch: str = "+0Hz",
+    volume: str = "+0%"
+) -> str:
+    """Compute MD5 hash for TTS caching including rate, pitch, and volume."""
+    raw = f"{text.strip()}|{voice}|{rate}|{pitch}|{volume}"
     return hashlib.md5(raw.encode("utf-8")).hexdigest()
+
 
 
 def split_narration_text(text: str) -> Tuple[str, str]:
@@ -457,6 +464,7 @@ def recalculate_timeline(
         text = (sc.get("narration") or sc.get("text") or "").strip()
         img_id = sc.get("imageSource") or sc.get("image_id") or f"frame_{idx:04d}"
         action_type = sc.get("action_type", "normal")
+        voice_direction = sc.get("voice_direction")
         story_beat = sc.get("storyBeat", f"Beat_{idx}")
         sentence_bounds = sc.get("sentence_boundaries")
         
@@ -503,6 +511,7 @@ def recalculate_timeline(
             "imageSource": img_id,
             "image_id": img_id,
             "action_type": action_type,
+            "voice_direction": voice_direction,
             "wordCount": word_count,
             "startTime": round(start_time, 4),
             "endTime": round(end_time, 4),

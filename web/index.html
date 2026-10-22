@@ -255,6 +255,31 @@
               <span id="renderProgressText">กำลังประมวลผลวิดีโอ กรุณารอสักครู่...</span>
             </div>
           </div>
+
+          <!-- Concat NLE Integration Card -->
+          <div class="concat-nle-card">
+            <div class="concat-card-header">
+              <span class="concat-badge"><span class="concat-dot"></span>NLE STUDIO</span>
+              <h4>🎬 เปิดตัดต่อขั้นสูงด้วย Concat NLE</h4>
+            </div>
+            <p class="concat-card-desc">
+              ส่งออกไทม์ไลน์แบบมัลติแทร็ก (Dual Timeline 16:9 & 9:16, Continuous 48kHz WAV Stems, Ken Burns Transitions และซับไตเติล Kanit) ไปยัง Concat Desktop NLE เพื่อปรับแต่งละเอียดได้ทันที
+            </p>
+            <div class="concat-card-actions">
+              <button class="btn-concat-primary" id="btnOpenConcat" title="ซิงค์และเปิดโปรเจกต์ใน Concat NLE">
+                <span class="btn-icon">🚀</span>
+                <span class="btn-text">เปิดใน Concat NLE (Open in Concat)</span>
+              </button>
+              <button class="btn-concat-outline" id="btnExportConcat" title="สร้างไฟล์ concat.json และสเตมเสียง 48kHz โดยไม่เปิดโปรแกรม">
+                <span class="btn-icon">📦</span>
+                <span class="btn-text">ส่งออกไฟล์ Concat (Sync Only)</span>
+              </button>
+            </div>
+            <div class="concat-sync-status" id="concatSyncStatus" style="display: none;">
+              <div class="spinner-small"></div>
+              <span id="concatSyncStatusText">กำลังซิงค์ไทม์ไลน์ไปยัง Concat...</span>
+            </div>
+          </div>
         </div>
 
         <!-- Right: Video Player & Output -->
@@ -749,6 +774,39 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal: Concat Not Found Fallback -->
+  <div class="modal" id="modalConcatNotFound" style="display: none;">
+    <div class="modal-content" style="max-width: 520px; border: 1px solid rgba(5, 104, 253, 0.4); box-shadow: 0 10px 40px rgba(5, 104, 253, 0.25);">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+        <h3 style="display: flex; align-items: center; gap: 8px; color: #70adff;">
+          <span>🔍</span> ไม่พบโปรแกรม Concat NLE
+        </h3>
+        <button class="modal-close" id="btnCloseConcatModal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px; color: #c0cbe0; font-size: 0.95rem; line-height: 1.6;">
+        <p>
+          ระบบไม่พบโปรแกรม Concat ที่ตำแหน่งติดตั้งมาตรฐาน:
+        </p>
+        <code style="display: block; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 6px; font-size: 0.82rem; margin: 10px 0; color: #00f0ff; word-break: break-all;">
+          C:\Users\&lt;User&gt;\AppData\Local\Programs\Concat\concat.exe
+        </code>
+        <p style="margin-top: 12px;">
+          📦 <b>โปรเจกต์ของคุณได้รับการส่งออกเรียบร้อยแล้ว:</b><br>
+          ไฟล์โครงสร้างโปรเจกต์ <code>concat.json</code> และสเตมเสียง 48kHz WAV ถูกสร้างไว้ในโฟลเดอร์โปรเจกต์แล้ว
+        </p>
+        <div style="background: rgba(5, 104, 253, 0.08); border-left: 3px solid #0568fd; padding: 10px 14px; border-radius: 4px; margin-top: 14px;">
+          💡 คุณสามารถเปิดโปรแกรม Concat ด้วยตนเอง แล้วเลือก <b>Open Project</b> ไปที่โฟลเดอร์ของโปรเจกต์นี้ หรือระบุ Environment Variable <code>CONCAT_BIN</code> ได้ทันที
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px;">
+        <button class="btn btn-primary" id="btnDismissConcatModal">รับทราบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <script src="app.js"></script>
 </body>

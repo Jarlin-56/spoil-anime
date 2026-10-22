@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import Image
 import requests
 
-from config import PROJECTS_DIR
+from config import PROJECTS_DIR, ACTION_TYPE_TO_VOICE_DIRECTION
 from timing_engine import count_thai_words, estimate_speech_duration, compress_narration
 
 def format_timestamp(seconds: float) -> str:
@@ -307,6 +307,8 @@ def finalize_script_items(items: list) -> list:
         itm["wordCount"] = words
         itm["estimatedNarrationDuration"] = estimate_speech_duration(text)
         itm["storyBeat"] = assign_story_beat_name(idx, total)
+        if "voice_direction" not in itm:
+            itm["voice_direction"] = ACTION_TYPE_TO_VOICE_DIRECTION.get(itm.get("action_type", "normal"), "conversational")
         itm["status"] = "script_ready"
     return items
 

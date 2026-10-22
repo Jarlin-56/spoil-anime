@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 import edge_tts
 
-from config import FFMPEG_BIN, FFPROBE_BIN, VOICES, DEFAULT_VOICE
+from config import FFMPEG_BIN, FFPROBE_BIN, VOICES, DEFAULT_VOICE, resolve_voice_profile
 from timing_engine import (
     recalculate_timeline,
     validate_timeline,
@@ -77,7 +77,9 @@ async def synthesize_line_cached(
     voice: str,
     rate: str,
     output_path: str,
-    cache_dir: Path
+    cache_dir: Path,
+    pitch: str = "+0Hz",
+    volume: str = "+0%"
 ):
     """
     Synthesize line with content-based MD5 caching and capture exact sentence boundaries.
@@ -86,7 +88,7 @@ async def synthesize_line_cached(
     sentences = split_narration_sentences(text)
     # Join with newline so Edge-TTS creates natural pause and emits distinct SentenceBoundary
     tts_text = "\n".join(sentences) if sentences else text
-    cache_key = compute_tts_cache_key(tts_text, voice, rate)
+    cache_key = compute_tts_cache_key(tts_text, voice, rate, pitch=pitch, volume=volume)
     cache_file = cache_dir / f"{cache_key}.mp3"
     meta_file = cache_dir / f"{cache_key}_meta.json"
     
@@ -112,7 +114,7 @@ async def synthesize_line_cached(
         return dur, sentence_boundaries
         
     # 2. Synthesize using edge-tts stream to capture SentenceBoundary
-    communicate = edge_tts.Communicate(text=tts_text, voice=voice, rate=rate)
+    communicate = edge_tts.Communicate(text=tts_text, voice=voice, rate=rate, pitch=pitch, volume=volume)
     sentence_boundaries = []
     
     with open(output_path, "wb") as audio_fp:
@@ -179,12 +181,25 @@ async def build_voiceover_timeline(
         line_text = item.get("text", "").strip()
         img_id = item.get("image_id")
         action_type = item.get("action_type", "normal")
+        voice_direction = item.get("voice_direction")
+        
+        # Resolve effective per-scene voice profile
+        effective_direction, effective_rate, effective_pitch = resolve_voice_profile(
+            action_type=action_type,
+            voice_direction=voice_direction,
+            base_rate_str=rate
+        )
         
         raw_segment_filepath = audio_dir / f"raw_seg_{idx:04d}.mp3"
         raw_meta_filepath = audio_dir / f"raw_seg_{idx:04d}.json"
         
         speech_dur, sentence_boundaries = await synthesize_line_cached(
-            line_text, voice, rate, str(raw_segment_filepath), cache_dir
+            text=line_text,
+            voice=voice,
+            rate=effective_rate,
+            output_path=str(raw_segment_filepath),
+            cache_dir=cache_dir,
+            pitch=effective_pitch
         )
         
         # Save per-segment metadata alongside audio segment for persistence
@@ -203,6 +218,9 @@ async def build_voiceover_timeline(
             "imageSource": img_id,
             "image_id": img_id,
             "action_type": action_type,
+            "voice_direction": effective_direction,
+            "effective_rate": effective_rate,
+            "effective_pitch": effective_pitch,
             "actualAudioDuration": speech_dur,
             "speech_duration": speech_dur,
             "sentence_boundaries": sentence_boundaries,
@@ -320,6 +338,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     result_data = {
         "voice": voice,
         "rate": rate,
+        "pitch": pitch,
         "fps": fps,
         "sample_rate": 48000,
         "total_duration": total_time,
@@ -352,11 +371,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     print(f"[+] Voiceover generated successfully! Total length: {total_time:.2f}s ({len(timeline_items)} segments)")
     return result_data
 
-def run_tts(script_json_path: str, output_dir: str, voice: str = DEFAULT_VOICE, rate: str = "+5%", fps: int = 30):
+def run_tts(script_json_path: str, output_dir: str, voice: str = DEFAULT_VOICE, rate: str = "+5%", pitch: str = "+0Hz", fps: int = 30):
     with open(script_json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     items = data.get("items", data) if isinstance(data, dict) else data
-    return asyncio.run(build_voiceover_timeline(items, output_dir, voice=voice, rate=rate, fps=fps))
+    return asyncio.run(build_voiceover_timeline(items, output_dir, voice=voice, rate=rate, pitch=pitch, fps=fps))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Edge-TTS Voiceover Generator")
@@ -364,9 +383,11 @@ if __name__ == "__main__":
     parser.add_argument("--out", required=True, help="Output directory")
     parser.add_argument("--voice", default=DEFAULT_VOICE, help="Voice name (th-TH-NiwatNeural, th-TH-PremwadeeNeural)")
     parser.add_argument("--rate", default="+5%", help="Speed rate (+0%, +5%, +10%)")
+    parser.add_argument("--pitch", default="+0Hz", help="Pitch adjustment (+0Hz, +3Hz, -2Hz)")
     parser.add_argument("--fps", type=int, default=30, help="Target video FPS (default: 30)")
     
     args = parser.parse_args()
-    res = run_tts(args.script, args.out, voice=args.voice, rate=args.rate, fps=args.fps)
+    res = run_tts(args.script, args.out, voice=args.voice, rate=args.rate, pitch=args.pitch, fps=args.fps)
     print(f"Master voiceover ready at: {res['master_audio']}")
+
 

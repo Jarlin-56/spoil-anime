@@ -557,6 +557,8 @@ function renderScript(script, frames) {
       const txt = card.querySelector('.script-text-input').value.trim();
       const voice = document.getElementById('voiceSelect').value;
       const rate = document.getElementById('rateSelect').value;
+      const action_type = card.querySelector('.script-action-select')?.value || 'normal';
+      const voice_direction = item.voice_direction;
       if (!txt) return;
 
       btnAudition.textContent = '⏳...';
@@ -564,7 +566,13 @@ function renderScript(script, frames) {
         const resp = await fetch('/api/tts-preview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: txt, voice, rate })
+          body: JSON.stringify({
+            text: txt,
+            voice,
+            rate,
+            action_type,
+            voice_direction
+          })
         });
         if (resp.ok) {
           const blob = await resp.blob();
@@ -1056,13 +1064,18 @@ document.getElementById('btnSaveScript').addEventListener('click', async () => {
     const matchFrame = currentProjectData?.frames?.find(f => f.id === img_id);
     const timeStr = matchFrame?.time_str || '';
 
-    items.push({
+    const origItem = currentProjectData?.script?.items?.[idx];
+    const itemObj = {
       id: idx + 1,
       image_id: img_id,
       timestamp: timeStr,
       text,
       action_type
-    });
+    };
+    if (origItem && origItem.voice_direction) {
+      itemObj.voice_direction = origItem.voice_direction;
+    }
+    items.push(itemObj);
   });
 
   const updatedScript = {
@@ -1818,4 +1831,145 @@ if (btnRefreshReadiness) {
     refreshProvenanceData(currentProjectId);
   });
 }
+
+// ================================================
+// Cyber Toast Notification System
+// ================================================
+function showToast(message, type = 'info', durationMs = 4000) {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const icons = {
+    success: '✅',
+    info: '🎬',
+    error: '❌',
+    warning: '⚠️'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <span style="font-size: 1.1rem;">${icons[type] || '🔔'}</span>
+    <span style="flex: 1;">${message}</span>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }, durationMs);
+}
+window.showToast = showToast;
+
+// ================================================
+// Concat NLE Studio Integration
+// ================================================
+const btnOpenConcat = document.getElementById('btnOpenConcat');
+const btnExportConcat = document.getElementById('btnExportConcat');
+const concatSyncStatus = document.getElementById('concatSyncStatus');
+const concatSyncStatusText = document.getElementById('concatSyncStatusText');
+const modalConcatNotFound = document.getElementById('modalConcatNotFound');
+const btnCloseConcatModal = document.getElementById('btnCloseConcatModal');
+const btnDismissConcatModal = document.getElementById('btnDismissConcatModal');
+
+function setConcatLoading(isLoading, text = '') {
+  if (btnOpenConcat) btnOpenConcat.disabled = isLoading;
+  if (btnExportConcat) btnExportConcat.disabled = isLoading;
+  if (concatSyncStatus) {
+    concatSyncStatus.style.display = isLoading ? 'flex' : 'none';
+    if (concatSyncStatusText && text) {
+      concatSyncStatusText.textContent = text;
+    }
+  }
+}
+
+// 1. Open in Concat NLE
+if (btnOpenConcat) {
+  btnOpenConcat.addEventListener('click', async () => {
+    if (!currentProjectId) {
+      showToast('กรุณาเลือกหรือสร้างโปรเจกต์ก่อน', 'warning');
+      return;
+    }
+
+    setConcatLoading(true, 'กำลังซิงค์และเริ่มโปรแกรม Concat NLE...');
+
+    try {
+      const res = await fetch(`/api/projects/${currentProjectId}/open-in-concat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(`เปิด Concat NLE สำเร็จ! (PID: ${data.pid || 'Active'})`, 'success', 5000);
+      } else {
+        if (data.binaryMissing || res.status === 404 || (data.error && data.error.includes('concat.exe'))) {
+          if (modalConcatNotFound) {
+            modalConcatNotFound.style.display = 'flex';
+          } else {
+            showToast('ไม่พบโปรแกรม Concat บนเครื่อง แต่ส่งออก concat.json สำเร็จแล้ว', 'warning', 6000);
+          }
+        } else {
+          showToast(`เปิด Concat ล้มเหลว: ${data.error}`, 'error', 5000);
+        }
+      }
+    } catch (err) {
+      showToast(`เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}`, 'error', 5000);
+    } finally {
+      setConcatLoading(false);
+    }
+  });
+}
+
+// 2. Export Concat Only (Sync Only)
+if (btnExportConcat) {
+  btnExportConcat.addEventListener('click', async () => {
+    if (!currentProjectId) {
+      showToast('กรุณาเลือกหรือสร้างโปรเจกต์ก่อน', 'warning');
+      return;
+    }
+
+    setConcatLoading(true, 'กำลังส่งออกโปรเจกต์ไปยัง Concat...');
+
+    try {
+      const res = await fetch(`/api/projects/${currentProjectId}/export-concat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const scCount = data.summary?.scenesCount || 0;
+        showToast(`ส่งออก Concat สำเร็จ (${scCount} ฉาก, 2 ไทม์ไลน์ 16:9 & 9:16)`, 'success', 4500);
+      } else {
+        showToast(`ส่งออกล้มเหลว: ${data.error}`, 'error', 5000);
+      }
+    } catch (err) {
+      showToast(`เกิดข้อผิดพลาด: ${err.message}`, 'error', 5000);
+    } finally {
+      setConcatLoading(false);
+    }
+  });
+}
+
+// Close Modal Concat Not Found
+if (btnCloseConcatModal) {
+  btnCloseConcatModal.addEventListener('click', () => {
+    if (modalConcatNotFound) modalConcatNotFound.style.display = 'none';
+  });
+}
+if (btnDismissConcatModal) {
+  btnDismissConcatModal.addEventListener('click', () => {
+    if (modalConcatNotFound) modalConcatNotFound.style.display = 'none';
+  });
+}
+
 
